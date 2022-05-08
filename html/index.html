@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>::SIXIS:: Project Zomboid</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+
+ <link rel="stylesheet" href="https://unpkg.com/leaflet@1.8.0/dist/leaflet.css"
+   integrity="sha512-hoalWLoI8r4UszCkZ5kL8vayOGVae1oxXe/2A4AO6J9+580uKHDO3JdHb7NzwwzK5xr/Fs0W40kiNHxM9vyTtQ=="
+   crossorigin=""/>
+
+    <script src="https://unpkg.com/leaflet@1.8.0/dist/leaflet.js"
+   integrity="sha512-BB3hKbKWOc9Ez/TAwyWxNXeoV9c1v6FIeYiBieIWkpLjauysF18NzgR1MBNBXf8/KABdlkX68nAhlwcDFLGPCQ=="
+   crossorigin=""></script>
+
+    <script src="js/Leaflet.Coordinates-0.1.5.min.js"></script>
+    <link rel="stylesheet" href="js/Leaflet.Coordinates-0.1.5.css"/>
+    
+    <link rel="stylesheet" href="js/leaflet-search.min.css" />
+    <script src="js/leaflet-search.min.js"></script>
+
+    <script>
+    const queryString = window.location.search;
+    const urlParams = new URLSearchParams(queryString);
+    var mapMinZoom = 1;
+    var mapMaxZoom = 6;
+    var mapX = urlParams.get('x');
+    var mapY = urlParams.get('y');
+    var mapZ = urlParams.get('z');
+    var missionActive = (urlParams.get('m') !== null );
+    var missionText = urlParams.get('text');
+    var map,mapIcons,markersLayer;
+    //var watch;
+    
+    function init() {
+
+
+        L.CRS.MySimple = L.extend({}, L.CRS.Simple, {
+          transformation: new L.Transformation(1 / 64, -12.65, 1 / 64, 15.5),
+        });
+
+        map = L.map('map', {
+          maxZoom: mapMaxZoom,
+          minZoom: mapMinZoom,
+          crs: L.CRS.MySimple,
+        });
+
+        /*
+        window.latLngToPixels = function (latlng) {
+          return window.map.project(
+            [latlng.lat, latlng.lng],
+            window.map.getMaxZoom()
+          );
+        };
+        window.pixelsToLatLng = function (x, y) {
+          return window.map.unproject([x, y], window.map.getMaxZoom());
+        };
+        */
+        var mapBounds = L.latLngBounds([
+          [13500, 3000],
+          [900, 15000],
+        ]);
+        map.fitBounds(mapBounds);
+        
+        var cartodbAttribution = '<a href="https://discord.gg/sixis">SIXIS Project Zomboid</a> &copy;OmNomNomicron, &copy;Xyberviri';
+
+        L.tileLayer('images/{z}/{y}/{x}.jpg', {
+          minZoom: mapMinZoom,
+          maxZoom: mapMaxZoom,
+          bounds: mapBounds,
+          attribution: cartodbAttribution,
+          noWrap: true,
+          tms: false,
+        }).addTo(map);
+
+        //Trouble Shooting
+        /*
+      L.rectangle(mapBounds).addTo(map);
+      L.marker([900, 15000]).addTo(map).bindPopup("Top Right");
+      L.marker([13500, 3000]).addTo(map).bindPopup("Botton Left");
+      */
+        var popup = L.popup();
+
+        function onMapClick(e) {
+          popup
+            .setLatLng(e.latlng)
+            .setContent('( '+(e.latlng.lng-0.6)+' , '+e.latlng.lat+' )' 
+            +' <a href="'+window.location.pathname +'?x='+(e.latlng.lng-0.6)+'&y='+e.latlng.lat+'&z='+map._zoom +'" target="_new">LINK</a>' ) //map._zoom
+            .openOn(map);
+        }
+
+        map.on('click', onMapClick);
+
+        L.Control.Coordinates.include({
+          _update: function (evt) {
+            var pos = evt.latlng,
+              opts = this.options;
+            if (pos) {
+              this._currentPos = pos;
+              this._inputY.value = L.NumberFormatter.round(
+                pos.lat,
+                opts.decimals,
+                opts.decimalSeperator
+              );
+              this._inputX.value = L.NumberFormatter.round(
+                pos.lng,
+                opts.decimals,
+                opts.decimalSeperator
+              );
+              this._label.innerHTML = this._createCoordinateLabel(pos);
+            }
+          },
+        });
+
+        L.control.coordinates({
+          position:"topright",
+          decimals: 0, //optional default 4
+          useDMS:false,
+          labelTemplateLat:"Y {y}",
+          labelTemplateLng:"X {x}",
+          useLatLngOrder:false
+		    }).addTo(map);
+                
+    var HandIcon = L.Icon.extend({
+        options: {
+            shadowUrl: 'icons/hand-shadow.png',
+            iconSize:     [38, 95], // size of the icon
+            shadowSize:   [50, 64], // size of the shadow
+            iconAnchor:   [21, 94], // point of the icon which will correspond to marker's location
+            shadowAnchor: [4, 62],  // the same for the shadow
+            popupAnchor:  [-3, -76] // point from which the popup should open relative to the iconAnchor
+        }
+    }); 
+
+        
+    var bulletIcon  = new HandIcon({iconUrl: 'icons/hand-bullets.png'}),
+        costumeIcon = new HandIcon({iconUrl: 'icons/hand-costume.png'}),
+        dealerIcon  = new HandIcon({iconUrl: 'icons/hand-dealer.png'}),
+        atmIcon     = new HandIcon({iconUrl: 'icons/hand-money.png'}),
+        traderIcon  = new HandIcon({iconUrl: 'icons/hand-shopping.png'}),
+        corpseIcon  = new HandIcon({iconUrl: 'icons/hand-skull.png'}),
+        missionIcon = new HandIcon({iconUrl: 'icons/hand-mission.png',className: 'blinking'});
+        mapIcons = {    
+            bullet: bulletIcon, 
+            costume: costumeIcon, 
+            dealer: dealerIcon, 
+            atm: atmIcon, 
+            trader:traderIcon, 
+            corpse:corpseIcon, 
+            mission:missionIcon
+            };
+
+
+    loadSearchBox();
+    loadMerchantIcons();
+    setFocus();
+    if(missionActive){
+        loadMissionIcon();
+    }    
+}
+
+function customTip(text,val) {
+    return '<a href="#"> '+text+' ('+val.lng+','+val.lat+')</a>';
+}
+
+function setFocus(){
+    if (!(isNaN(mapX)||mapX===null) && !(isNaN(mapY)||mapY===null)) {  
+        if (isNaN(mapZ)||mapZ===null) {
+            mapZ = 6;
+        };
+        map.setView([mapY,mapX], mapZ, {animation: true});
+    }  
+}
+
+function loadMissionIcon(){          
+    var text = "<B>MISSION ALERT:</B>"
+    +"<br>Mission going on here!!<br><a href='https://discord.com/channels/934616686718513204/936790940901847061' target='_new'>Click HERE for info</a>";
+    if( (missionText !== null) && (missionText !== undefined) && (missionText !=="") ){
+            text=missionText;
+        }
+    markersLayer.addLayer( L.marker([mapY, mapX], {title: "MISSION", icon: mapIcons["mission"]}).addTo(map).bindPopup(text) );
+}
+
+function loadSearchBox(){
+	markersLayer = new L.LayerGroup();	//layer contain searched elements
+	map.addLayer(markersLayer);
+
+	map.addControl( new L.Control.Search({
+		layer: markersLayer,
+		buildTip: customTip,
+		initial: false,
+		zoom: 6
+	}) );
+}
+function loadSearchBoxOld(){
+	markersLayer = new L.LayerGroup();	//layer contain searched elements	
+	map.addLayer(markersLayer);
+
+	map.addControl( new L.Control.Search({
+		position:'topright',		
+		layer: markersLayer,
+		initial: false,
+		zoom: 4,
+		marker: false
+	}) );
+};
+    
+function loadMerchantIcons(){
+    var x,count=0;
+    xmlhttp = new XMLHttpRequest();
+    xmlhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+        jsonShopData = JSON.parse(this.responseText);
+        for (x in jsonShopData.results) {
+            count++;
+            var searchString = '#'+count+' '+jsonShopData.results[x].icon;
+            if(jsonShopData.results[x].title !== null){
+                searchString += ' '+jsonShopData.results[x].title;
+            }
+            
+            console.log( jsonShopData.results[x].title + ' ' + jsonShopData.results[x].location.x + ' ' + jsonShopData.results[x].location.y + ' ' + jsonShopData.results[x].icon );    
+   
+   //var marker = new L.Marker(new L.latLng([ jsonShopData.results[x].location.z, jsonShopData.results[x].location.x ]), {title: jsonShopData.results[x].item.name+" ("+jsonShopData.results[x].price+"c)"} );
+   
+            var t = L.marker([jsonShopData.results[x].location.y, jsonShopData.results[x].location.x], {title:searchString, icon: mapIcons[jsonShopData.results[x].icon]}).addTo(map);
+            
+                if(jsonShopData.results[x].title !== undefined) {
+                    var text = '<b><center>'+jsonShopData.results[x].title+':</center></b>';
+                    text += 'X:'+jsonShopData.results[x].location.y+',Y:'+jsonShopData.results[x].location.x;
+                    
+                    if ((jsonShopData.results[x].text !== undefined) && (jsonShopData.results[x].text !== null) && (jsonShopData.results[x].text !== "")){
+                        text += '<br>'+jsonShopData.results[x].text;            
+                    };
+                    
+                    t.bindPopup(text);
+                };
+                
+                markersLayer.addLayer(t);
+               
+
+            };
+
+        };
+    };
+    xmlhttp.open("GET", "js/shops.json", true);
+    xmlhttp.send();
+};
+    </script>
+    <style>
+      html,
+      body,
+      #map {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        background: black;
+    }
+    @keyframes fade { 
+        from { opacity: 0.1; } 
+    }
+
+    .blinking {
+        animation: fade 1s infinite alternate;
+    }
+    </style>
+  </head>
+
+  <body onload="init()">
+    <div id="map"></div>
+  </body>
+</html>
