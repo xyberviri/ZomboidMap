@@ -1,0 +1,74 @@
+{
+	"count": 100,
+	"next": null,
+	"previous": null,
+	"icons": {
+		"bullet": "bulletIcon",
+		"costume": "costumeIcon",
+		"dealer": "dealerIcon",
+		"atm": "atmIcon",
+		"trader": "traderIcon",
+		"corpse": "corpseIcon",
+		"mission": "missionIcon"
+	},
+	"results": [
+    {
+		"location": {
+			"x": 4039,
+			"y": 11268
+		},
+		"title": "ATM",
+		"text": "Raven Creek",
+		"icon": "bullet"
+	}, {
+		"location": {
+			"x": 3174,
+			"y": 11141
+		},
+		"title": "ATM",
+		"text": "Raven Creek",
+		"icon": "costume"
+	}, {
+		"location": {
+			"x": 3892,
+			"y": 11822
+		},
+		"title": "ATM",
+		"text": "Raven Creek",
+		"icon": "dealer"
+	}, {
+		"location": {
+			"x": 4466,
+			"y": 11802
+		},
+		"title": "ATM",
+		"text": "Raven Creek",
+		"icon": "trader"
+	}, {
+		"location": {
+			"x": 3971,
+			"y": 12558
+		},
+		"title": "ATM",
+		"text": "Raven Creek",
+		"icon": "corpse"
+	}, {
+		"location": {
+			"x": 6436,
+			"y": 11826
+		},
+		"title": "ATM",
+		"text": "",
+		"icon": "mission"
+	}, {
+		"location": {
+			"x": 7228,
+			"y": 11213
+		},
+		"title": "ATM",
+		"text": "GrapeSeed",
+		"icon": "atm"
+	}
+    
+    ]
+}

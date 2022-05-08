@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link href="//cdn.jsdelivr.net/npm/featherlight@1.7.14/release/featherlight.min.css" type="text/css" rel="stylesheet" />
+
+</head>
+<body>
+
+<h2>List of traders</h2>
+<br>
+Click in the box to auto copy the teleport command
+<br>
+<p id="demo"></p>
+
+<script>
+
+function copyInput(that){
+var inp =document.createElement('input');
+
+if(that.style.borderColor ==="red"){
+	that.style.borderColor = "";
+} else {
+	that.style.borderColor = "red";
+}
+
+document.body.appendChild(inp)
+inp.value =that.value
+inp.select();
+console.log(that.value)
+document.execCommand('copy',false);
+inp.remove();
+}
+
+
+var xmlhttp, jsonShopData, x, txt = "";
+xmlhttp = new XMLHttpRequest();
+xmlhttp.onreadystatechange = function() {
+  if (this.readyState == 4 && this.status == 200) {
+    jsonShopData = JSON.parse(this.responseText);
+    txt += "<table border='1'>"
+
+    for (x in jsonShopData.results) {
+      txt += "<tr><td>" + jsonShopData.results[x].title + "</td><td><input onclick='copyInput(this)' type='text' value='/teleportto " + jsonShopData.results[x].location.x +"," +jsonShopData.results[x].location.y+",0'>" 
+      + "</td></tr>";
+    }
+    txt += "</table>"    
+    document.getElementById("demo").innerHTML = txt;
+  }
+};
+xmlhttp.open("GET", "js/shops.json", true);
+xmlhttp.send();
+</script>
+
+
+<script src="//code.jquery.com/jquery-latest.js"></script>
+<script src="//cdn.jsdelivr.net/npm/featherlight@1.7.14/release/featherlight.min.js" type="text/javascript" charset="utf-8"></script>
+</body>
+</html>
+
+
