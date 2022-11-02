@@ -11,4 +11,4 @@ See an example here: https://media.epicgamer.org/pz/
 
 Adjust transforms on line 39 to correct zooming, 
 
-when map is no longer square because of other maps being imported im not really sure what to do at that point cause html/javascript/leafet/tiles isnt really my strong point. so any help is appreciated this is mostly just hacked together
+Export maps so they are always squared to avoid issues iwth conversion. 
